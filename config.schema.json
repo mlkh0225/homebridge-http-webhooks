@@ -892,6 +892,77 @@
             }
           }
         }
+      },
+      "heatercoolers": {
+        "type": "array",
+        "title": "Heater Coolers",
+        "description": "Control a heater cooler by updating four different values.",
+        "items": {
+          "title": "Heater Coolers",
+          "type": "object",
+          "properties": {
+            "id": {
+              "title": "ID",
+              "type": "string",
+              "placeholder": "heatercooler1",
+              "required": false
+            },
+            "name": {
+              "title": "Name",
+              "type": "string",
+              "placeholder": "Heater Cooler 1",
+              "required": false
+            },
+            "set_active_url": {
+              "title": "Set Active URL",
+              "type": "string",
+              "placeholder": "http://127.0.0.1/heatercoolerscript.php?active=%f",
+              "required": false
+            },
+            "set_active_method": {
+              "title": "Set Active Method",
+              "type": "string",
+              "placeholder": "GET",
+              "required": false
+            },
+            "set_active_body": {
+              "title": "Set Active Body",
+              "type": "string",
+              "placeholder": "{ \"on\" : true }",
+              "required": false
+            },
+            "set_active_headers": {
+              "title": "Set Active Headers",
+              "type": "string",
+              "placeholder": "{\"Authorization\": \"Bearer ABCDEFGH\", \"Content-Type\": \"application/json\"}",
+              "required": false
+            },
+            "set_target_heater_cooler_state_url": {
+              "title": "Set Target Heater Cooler State URL",
+              "type": "string",
+              "placeholder": "http://127.0.0.1/heatercoolerscript.php?targetstate=%b",
+              "required": false
+            },
+            "set_target_heater_cooler_state_method": {
+              "title": "Set Target Heater Cooler State Method",
+              "type": "string",
+              "placeholder": "GET",
+              "required": false
+            },
+            "set_target_heater_cooler_state_body": {
+              "title": "Set Target Heater Cooler State Body",
+              "type": "string",
+              "placeholder": "{ \"on\" : true }",
+              "required": false
+            },
+            "set_target_heater_cooler_state_headers": {
+              "title": "Set Target Heater Cooler State Headers",
+              "type": "string",
+              "placeholder": "{\"Authorization\": \"Bearer ABCDEFGH\", \"Content-Type\": \"application/json\"}",
+              "required": false
+            }
+          }
+        }
       }
     }
   },
@@ -1222,6 +1293,31 @@
                 "lockmechanisms[].close_method",
                 "lockmechanisms[].close_body",
                 "lockmechanisms[].close_headers"
+              ]
+            }
+          ]
+        },
+        {
+          "type": "section",
+          "title": "Heater Coolers",
+          "expandable": true,
+          "expanded": false,
+          "items": [
+            {
+              "title": "Heater Coolers",
+              "type": "array",
+              "orderable": false,
+              "items": [
+                "heatercoolers[].id",
+                "heatercoolers[].name",
+                "heatercoolers[].set_active_url",
+                "heatercoolers[].set_active_method",
+                "heatercoolers[].set_active_body",
+                "heatercoolers[].set_active_headers",
+                "heatercoolers[].set_target_heater_cooler_state_url",
+                "heatercoolers[].set_target_heater_cooler_state_method",
+                "heatercoolers[].set_target_heater_cooler_state_body",
+                "heatercoolers[].set_target_heater_cooler_state_headers"
               ]
             }
           ]
