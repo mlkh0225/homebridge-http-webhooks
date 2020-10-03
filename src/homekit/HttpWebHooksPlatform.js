@@ -12,6 +12,7 @@ var HttpWebHookGarageDoorOpenerAccessory = require('./accessories/HttpWebHookGar
 var HttpWebHookStatelessSwitchAccessory = require('./accessories/HttpWebHookStatelessSwitchAccessory');
 var HttpWebHookLockMechanismAccessory = require('./accessories/HttpWebHookLockMechanismAccessory');
 var HttpWebHookWindowCoveringAccessory = require('./accessories/HttpWebHookWindowCoveringAccessory');
+var HttpWebHookHeaterCoolerAccessory = require('./accessories/HttpWebHookHeaterCoolerAccessory');
 
 var Service, Characteristic;
 
@@ -37,6 +38,7 @@ function HttpWebHooksPlatform(log, config, homebridge) {
   this.statelessSwitches = config["statelessswitches"] || [];
   this.windowCoverings = config["windowcoverings"] || [];
   this.lockMechanisms = config["lockmechanisms"] || [];
+  this.heaterCoolers = config["heatercoolers"] || [];
 
   this.server = new Server(Service, Characteristic, this, config);
 };
@@ -97,6 +99,11 @@ HttpWebHooksPlatform.prototype.accessories = function(callback) {
   for (var i = 0; i < this.lockMechanisms.length; i++) {
     var lockMechanismAccessory = new HttpWebHookLockMechanismAccessory(Service, Characteristic, this, this.lockMechanisms[i]);
     accessories.push(lockMechanismAccessory);
+  }
+
+  for (var i = 0; i < this.heaterCoolers.length; i++) {
+    var heaterCoolerAccessory = new HttpWebHookHeaterCoolerAccessory(Service, Characteristic, this, this.heaterCoolers[i]);
+    accessories.push(heaterCoolerAccessory);
   }
 
   this.server.setAccessories(accessories);
