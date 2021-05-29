@@ -12,6 +12,7 @@ function HttpWebHookSecurityAccessory(ServiceParam, CharacteristicParam, platfor
   this.id = securityConfig["id"];
   this.name = securityConfig["name"];
   this.type = "security";
+  this.rejectUnauthorized = securityConfig["rejectUnauthorized"] === undefined ? true: securityConfig["rejectUnauthorized"] === true;
   this.setStateURL = securityConfig["set_state_url"] || "";
   this.setStateMethod = securityConfig["set_state_method"] || "GET";
   this.setStateBody = securityConfig["set_state_body"] || "";
@@ -65,7 +66,7 @@ HttpWebHookSecurityAccessory.prototype.changeFromServer = function(urlParams) {
 }
 
 HttpWebHookSecurityAccessory.prototype.getTargetSecurityState = function(callback) {
-  this.log("Getting Target Security state for '%s'...", this.id);
+  this.log.debug("Getting Target Security state for '%s'...", this.id);
   var state = this.storage.getItemSync("http-webhook-target-security-state-" + this.id);
   if (state === undefined) {
     state = Characteristic.SecuritySystemTargetState.DISARM;
@@ -82,13 +83,13 @@ HttpWebHookSecurityAccessory.prototype.setTargetSecurityState = function(newStat
   var urlBody = this.setStateBody;
   var urlForm = this.setStateForm;
   var urlHeaders = this.setStateHeaders;
-  Util.callHttpApi(this.log, urlToCall, urlMethod, urlBody, urlForm, urlHeaders, callback, context, (function() {
+  Util.callHttpApi(this.log, urlToCall, urlMethod, urlBody, urlForm, urlHeaders, this.rejectUnauthorized, callback, context, (function() {
     this.service.getCharacteristic(Characteristic.SecuritySystemCurrentState).updateValue(newState, undefined, null);
   }).bind(this));
 };
 
 HttpWebHookSecurityAccessory.prototype.getCurrentSecurityState = function(callback) {
-  this.log("Getting Current Security state for '%s'...", this.id);
+  this.log.debug("Getting Current Security state for '%s'...", this.id);
   var state = this.storage.getItemSync("http-webhook-current-security-state-" + this.id);
   if (state === undefined) {
     state = Characteristic.SecuritySystemCurrentState.DISARMED;

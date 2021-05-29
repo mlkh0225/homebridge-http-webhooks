@@ -1,3 +1,47 @@
+### 0.1.15
+
+New features:
+  - Support minValue, maxValue and minStep for thermostats (thanks to NikDevx)
+
+### 0.1.14
+
+New features:
+  - Support http method PATCH (thanks to supermamon)
+
+### 0.1.13
+
+New features:
+
+  - Added CO2 sensor (thanks to jwktje)
+
+### 0.1.12
+
+New features:
+
+  - Added Fanv2 (thanks to p-x9)
+
+### 0.1.11
+
+Bugfix:
+
+  - Reduced some more log messages by using debug (thanks to jsiegenthaler).
+
+### 0.1.10
+
+New features:
+
+  - You can now set "rejectUnauthorized" to false on each accessory to allow calls via https on using unsecure certificate.
+
+Bugfix:
+
+  - Reduced some log messages by using debug (thanks to jsiegenthaler).
+
+### 0.1.9
+
+Bugfix:
+
+  - Sensors now return cached value if state and value is not provided in URL (thanks to tritter).
+
 ### 0.1.8
 
 Bugfix:

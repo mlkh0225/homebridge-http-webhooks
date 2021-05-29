@@ -12,6 +12,7 @@ function HttpWebHookOutletAccessory(ServiceParam, CharacteristicParam, platform,
   this.id = outletConfig["id"];
   this.name = outletConfig["name"];
   this.type = "outlet";
+  this.rejectUnauthorized = outletConfig["rejectUnauthorized"] === undefined ? true: outletConfig["rejectUnauthorized"] === true;
   this.onURL = outletConfig["on_url"] || "";
   this.onMethod = outletConfig["on_method"] || "GET";
   this.onBody = outletConfig["on_body"] || "";
@@ -81,7 +82,7 @@ HttpWebHookOutletAccessory.prototype.changeFromServer = function(urlParams) {
 }
 
 HttpWebHookOutletAccessory.prototype.getState = function(callback) {
-  this.log("Getting current state for '%s'...", this.id);
+  this.log.debug("Getting current state for '%s'...", this.id);
   var state = this.storage.getItemSync("http-webhook-" + this.id);
   if (state === undefined) {
     state = false;
@@ -90,7 +91,7 @@ HttpWebHookOutletAccessory.prototype.getState = function(callback) {
 };
 
 HttpWebHookOutletAccessory.prototype.getStateInUse = function(callback) {
-  this.log("Getting current state for '%s'...", this.id);
+  this.log.debug("Getting current state for '%s'...", this.id);
   var stateInUse = this.storage.getItemSync("http-webhook-" + this.id + "-inUse");
   if (stateInUse === undefined) {
     stateInUse = false;
@@ -114,7 +115,7 @@ HttpWebHookOutletAccessory.prototype.setState = function(powerOn, callback, cont
     urlHeaders = this.offHeaders;
   }
 
-  Util.callHttpApi(this.log, urlToCall, urlMethod, urlBody, urlForm, urlHeaders, callback, context);
+  Util.callHttpApi(this.log, urlToCall, urlMethod, urlBody, urlForm, urlHeaders, this.rejectUnauthorized, callback, context);
 };
 
 HttpWebHookOutletAccessory.prototype.getServices = function() {

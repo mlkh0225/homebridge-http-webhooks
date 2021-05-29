@@ -66,17 +66,19 @@ HttpWebHookSensorAccessory.prototype.changeFromServer = function(urlParams) {
   if (cached === undefined) {
     cached = isNumberBased ? 0 : false;
   }
-  var urlValue = isNumberBased ? urlParams.value : urlParams.state === "true";
-  this.log("urlValue: "+ urlValue);
-  if (!urlValue && urlValue !== false) {
+  var noUrlValue = isNumberBased ? urlParams.value === undefined : urlParams.state === undefined;
+  if (noUrlValue) {
+    this.log.debug("No urlValue");
     return {
       "success" : true,
       "state" : cached
     };
   }
+  var urlValue = isNumberBased ? urlParams.value : urlParams.state === "true";
+  this.log.debug("urlValue: "+ urlValue);
   this.storage.setItemSync("http-webhook-" + this.id, urlValue);
-  this.log("cached: "+ cached);
-  this.log("cached !== urlValue: "+ (cached !== urlValue));
+  this.log.debug("cached: "+ cached);
+  this.log.debug("cached !== urlValue: "+ (cached !== urlValue));
   if (cached !== urlValue) {
     this.log("Change HomeKit value for " + this.type + " sensor to '%s'.", urlValue);
 
@@ -134,9 +136,9 @@ HttpWebHookSensorAccessory.prototype.changeFromServer = function(urlParams) {
 };
 
 HttpWebHookSensorAccessory.prototype.getState = function(callback) {
-  this.log("Getting current state for '%s'...", this.id);
+  this.log.debug("Getting current state for '%s'...", this.id);
   var state = this.storage.getItemSync("http-webhook-" + this.id);
-  this.log("State for '%s' is '%s'", this.id, state);
+  this.log.debug("State for '%s' is '%s'", this.id, state);
   if (state === undefined) {
     state = false;
   }
