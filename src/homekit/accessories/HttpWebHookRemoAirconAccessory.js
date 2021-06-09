@@ -89,7 +89,7 @@ function HttpWebHookRemoAirconAccessory(ServiceParam, CharacteristicParam, platf
 	
 	if (this.functions.includes("blow")) {
 		this.fanService = new Service.Fanv2(this.name + " Fan");
-		this.fanService.getCharacteristic(Characteristic.Active).on('get', this.getActive.bind(this)).on('set', this.setActive.bind(this));
+		this.fanService.getCharacteristic(Characteristic.Active).on('get', this.getActive.bind(this)).on('set', this.setFanActive.bind(this));
 		this.fanService.getCharacteristic(Characteristic.CurrentFanState).on('get', this.getCurrentFanState.bind(this));
 		this.fanService.getCharacteristic(Characteristic.TargetFanState).on('get', this.getTargetFanState.bind(this)).on('set', this.setTargetFanState.bind(this));
 		this.fanService.getCharacteristic(Characteristic.RotationSpeed).on('get', this.getFanRotationSpeed.bind(this)).on('set', this.setFanRotationSpeed.bind(this));
@@ -431,16 +431,10 @@ HttpWebHookRemoAirconAccessory.prototype.setDehumidifierActive = function(active
 			}
 			this.storage.setItemSync("http-webhook-target-fan-state-" + this.id, Characteristic.TargetFanState.AUTO);
 			this.fanService.getCharacteristic(Characteristic.TargetFanState).updateValue(Characteristic.TargetFanState.AUTO);
-			this.storage.setItemSync("http-webhook-rotation-speed-" + this.id, 50);
-			this.fanService.getCharacteristic(Characteristic.RotationSpeed).updateValue(50);
+			this.storage.setItemSync("http-webhook-rotation-speed-" + this.id, Math.round(100 / this.fanRotationSpeedSignal.length));
+			this.fanService.getCharacteristic(Characteristic.RotationSpeed).updateValue(Math.round(100 / this.fanRotationSpeedSignal.length));
 		}
-		var airconActive = this.storage.getItemSync("http-webhook-active-" + this.id + "-aircon");
-		if (airconActive) {
-			this.storage.setItemSync("http-webhook-current-heater-cooler-state-" + this.id, Characteristic.CurrentHeaterCoolerState.INACTIVE);
-			this.airconService.getCharacteristic(Characteristic.CurrentHeaterCoolerState).updateValue(Characteristic.CurrentHeaterCoolerState.INACTIVE);
-			this.storage.setItemSync("http-webhook-active-" + this.id + "-aircon", Characteristic.Active.INACTIVE);
-			this.airconService.getCharacteristic(Characteristic.Active).updateValue(Characteristic.Active.INACTIVE);
-		}
+		this.setActive("dehumidifier");
 		this.log("[Aircon][%s][Dry Mode]...", this.name);
 		this.storage.setItemSync("http-webhook-current-humidifier-dehumidifier-state-" + this.id, Characteristic.CurrentHumidifierDehumidifierState.DEHUMIDIFYING);
 		this.dehumidifierService.getCharacteristic(Characteristic.CurrentHumidifierDehumidifierState).updateValue(Characteristic.CurrentHumidifierDehumidifierState.DEHUMIDIFYING);
@@ -505,13 +499,7 @@ HttpWebHookRemoAirconAccessory.prototype.setTargetHumidifierDehumidifierState = 
 			this.storage.setItemSync("http-webhook-rotation-speed-" + this.id, Math.round(100 / this.fanRotationSpeedSignal.length));
 			this.fanService.getCharacteristic(Characteristic.RotationSpeed).updateValue(Math.round(100 / this.fanRotationSpeedSignal.length));
 		}
-		var airconActive = this.storage.getItemSync("http-webhook-active-" + this.id + "-aircon");
-		if (airconActive) {
-			this.storage.setItemSync("http-webhook-active-" + this.id + "-airconService", Characteristic.Active.INACTIVE);
-			this.airconService.getCharacteristic(Characteristic.Active).updateValue(Characteristic.Active.INACTIVE);
-			this.storage.setItemSync("http-webhook-current-heater-cooler-state-" + this.id, Characteristic.CurrentHeaterCoolerState.INACTIVE);
-			this.airconService.getCharacteristic(Characteristic.CurrentHeaterCoolerState).updateValue(Characteristic.CurrentHeaterCoolerState.INACTIVE);
-		}
+		this.setActive("dehumidifier");
 		this.log("[Aircon][%s][Dry Mode]...", this.name);
 		this.storage.setItemSync("http-webhook-current-humidifier-dehumidifier-state-" + this.id, Characteristic.CurrentHumidifierDehumidifierState.DEHUMIDIFYING);
 		this.dehumidifierService.getCharacteristic(Characteristic.CurrentHumidifierDehumidifierState).updateValue(Characteristic.CurrentHumidifierDehumidifierState.DEHUMIDIFYING);
@@ -540,7 +528,7 @@ HttpWebHookRemoAirconAccessory.prototype.getActive = function(callback) {
 	callback(null, active);
 };
 
-HttpWebHookRemoAirconAccessory.prototype.setActive = function(active, callback, context) {
+HttpWebHookRemoAirconAccessory.prototype.setFanActive = function(active, callback, context) {
 	this.log.debug("[Debug][%s][fanService] setActive to '%s'...", this.name, Boolean(active));
 	this.storage.setItemSync("http-webhook-active-" + this.id, parseInt(active));
 	var state = this.storage.getItemSync("http-webhook-current-fan-state-" + this.id);
@@ -551,7 +539,9 @@ HttpWebHookRemoAirconAccessory.prototype.setActive = function(active, callback, 
 		this.fanService.getCharacteristic(Characteristic.CurrentFanState).updateValue(Characteristic.CurrentFanState.BLOWING_AIR);
 		this.storage.setItemSync("http-webhook-target-fan-state-" + this.id, Characteristic.TargetFanState.MANUAL);
 		this.fanService.getCharacteristic(Characteristic.TargetFanState).updateValue(Characteristic.TargetFanState.MANUAL);
-		var speed =  Math.round(100 / this.blowStep);
+		var speed =  Math.round(100 / this.fanRotationSpeedSignal.length));
+		this.storage.setItemSync("http-webhook-rotation-speed-" + this.id, speed);
+		this.fanService.getCharacteristic(Characteristic.RotationSpeed).updateValue(speed);
 		var rotationSpeed = Math.round(Math.max(speed, 1) * this.blowStep);
 		this.storage.setItemSync("http-webhook-rotation-speed-" + this.id, rotationSpeed);
 		Util.callHttpApi(this.log, this.remoURL, "POST", JSON.stringify(this.fanRotationSpeedSignal[speed - 1]), "", this.remoHeader, false, callback, context);
@@ -559,17 +549,7 @@ HttpWebHookRemoAirconAccessory.prototype.setActive = function(active, callback, 
 		this.log("[Aircon][%s] Setting to 'OFF'...", this.name);
 		this.storage.setItemSync("http-webhook-current-fan-state-" + this.id, Characteristic.CurrentFanState.INACTIVE);
 		this.fanService.getCharacteristic(Characteristic.CurrentFanState).updateValue(Characteristic.CurrentFanState.INACTIVE);
-		this.setInactive("fan");
-		this.storage.setItemSync("http-webhook-active-" + this.id + "-aircon", Characteristic.Active.INACTIVE);
-		this.airconService.getCharacteristic(Characteristic.Active).updateValue(Characteristic.Active.INACTIVE);
-		this.storage.setItemSync("http-webhook-current-heater-cooler-state-" + this.id, Characteristic.CurrentHeaterCoolerState.INACTIVE);
-		this.airconService.getCharacteristic(Characteristic.CurrentHeaterCoolerState).updateValue(Characteristic.CurrentHeaterCoolerState.INACTIVE);
-		if (this.functions.includes("dry")) {
-			this.storage.setItemSync("http-webhook-active-" + this.id + "-dehumidifier", Characteristic.Active.INACTIVE);
-			this.dehumidifierService.getCharacteristic(Characteristic.Active).updateValue(Characteristic.Active.INACTIVE);
-			this.storage.setItemSync("http-webhook-current-humidifier-dehumidifier-state-" + this.id, Characteristic.CurrentHumidifierDehumidifierState.INACTIVE);
-			this.dehumidifierService.getCharacteristic(Characteristic.CurrentHumidifierDehumidifierState).updateValue(Characteristic.CurrentHumidifierDehumidifierState.INACTIVE);
-		}
+		this.setActive("fan");
 		Util.callHttpApi(this.log, this.remoURL, "POST", this.setActiveSignal, "", this.remoHeader, false, callback, context);
 	} else {
 		callback(null);
@@ -632,21 +612,11 @@ HttpWebHookRemoAirconAccessory.prototype.setFanRotationSpeed = function(speed, c
 	this.log.debug("[Debug][%s][fanService] setFanRotationSpeed to '%d'...", this.name, speed);
 	var cachedSpeed = this.storage.getItemSync("http-webhook-rotation-speed-" + this.id);
 	this.storage.setItemSync("http-webhook-rotation-speed-" + this.id, speed);
-	this.storage.setItemSync("http-webhook-active-" + this.id + "-aircon", Characteristic.Active.INACTIVE);
-	this.airconService.getCharacteristic(Characteristic.Active).updateValue(Characteristic.Active.INACTIVE);
-	this.storage.setItemSync("http-webhook-current-heater-cooler-state-" + this.id, Characteristic.CurrentHeaterCoolerState.INACTIVE);
-	this.airconService.getCharacteristic(Characteristic.CurrentHeaterCoolerState).updateValue(Characteristic.CurrentHeaterCoolerState.INACTIVE);
-	if (this.functions.includes("dry")) {
-		this.storage.setItemSync("http-webhook-active-" + this.id + "-dehumidifier", Characteristic.Active.INACTIVE);
-		this.dehumidifierService.getCharacteristic(Characteristic.Active).updateValue(Characteristic.Active.INACTIVE);
-		this.storage.setItemSync("http-webhook-current-humidifier-dehumidifier-state-" + this.id, Characteristic.CurrentHumidifierDehumidifierState.INACTIVE);
-		this.dehumidifierService.getCharacteristic(Characteristic.CurrentHumidifierDehumidifierState).updateValue(Characteristic.CurrentHumidifierDehumidifierState.INACTIVE);
-	}
+	this.setActive("fan");
 	if (speed != cachedSpeed) {
-		this.log.debug("[Debug][%s][fanService] ON / OFF", this.name, speed);
+		this.log.debug("[Debug][%s][fanService] ON / OFF", this.name);
 		if (speed) {
 			this.log("[Aircon][%s][Fan Mode]...", this.name);
-			this.log("[Aircon][%s][Fan Mode] Setting Rotation Speed to '%d'...", this.name, speed);
 			this.storage.setItemSync("http-webhook-active-" + this.id, Characteristic.Active.ACTIVE);
 			this.fanService.getCharacteristic(Characteristic.Active).updateValue(Characteristic.Active.ACTIVE);
 			this.storage.setItemSync("http-webhook-current-fan-state-" + this.id, Characteristic.CurrentFanState.BLOWING_AIR);
@@ -655,8 +625,8 @@ HttpWebHookRemoAirconAccessory.prototype.setFanRotationSpeed = function(speed, c
 			this.fanService.getCharacteristic(Characteristic.TargetFanState).updateValue(Characteristic.TargetFanState.MANUAL);
 			speed =  Math.round(speed / this.blowStep);
 			var rotationSpeed = Math.round(Math.max(speed, 1) * this.blowStep);
+			this.log("[Aircon][%s][Fan Mode] Setting Rotation Speed to '%d'...", this.name, rotationSpeed);
 			this.storage.setItemSync("http-webhook-rotation-speed-" + this.id, rotationSpeed);
-			this.fanService.getCharacteristic(Characteristic.RotationSpeed).updateValue(rotationSpeed);
 			Util.callHttpApi(this.log, this.remoURL, "POST", JSON.stringify(this.fanRotationSpeedSignal[speed - 1]), "", this.remoHeader, false, callback, context);
 		} else {
 			this.log("[Aircon][%s] Setting to 'OFF'...", this.name);
@@ -671,7 +641,7 @@ HttpWebHookRemoAirconAccessory.prototype.setFanRotationSpeed = function(speed, c
 	}
 };
 
-HttpWebHookRemoAirconAccessory.prototype.setInactive = function(service) {
+HttpWebHookRemoAirconAccessory.prototype.setActive = function(service) {
 	var airconActive = this.storage.getItemSync("http-webhook-active-" + this.id + "-aircon");
 	if (service != "aircon" && airconActive) {
 		this.storage.setItemSync("http-webhook-active-" + this.id + "-aircon", Characteristic.Active.INACTIVE);
