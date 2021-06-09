@@ -12,7 +12,9 @@ var HttpWebHookGarageDoorOpenerAccessory = require('./accessories/HttpWebHookGar
 var HttpWebHookStatelessSwitchAccessory = require('./accessories/HttpWebHookStatelessSwitchAccessory');
 var HttpWebHookLockMechanismAccessory = require('./accessories/HttpWebHookLockMechanismAccessory');
 var HttpWebHookWindowCoveringAccessory = require('./accessories/HttpWebHookWindowCoveringAccessory');
-var HttpWebHookHeaterCoolerAccessory = require('./accessories/HttpWebHookHeaterCoolerAccessory');
+var HttpWebHookFanv2Accessory = require('./accessories/HttpWebHookFanv2Accessory');
+var HttpWebHookCarbonDioxideSensorAccessory = require('./accessories/HttpWebHookCarbonDioxideSensorAccessory');
+var HttpWebHookRemoAirconAccessory = require('./accessories/HttpWebHookRemoAirconAccessory');
 
 var Service, Characteristic;
 
@@ -38,7 +40,9 @@ function HttpWebHooksPlatform(log, config, homebridge) {
   this.statelessSwitches = config["statelessswitches"] || [];
   this.windowCoverings = config["windowcoverings"] || [];
   this.lockMechanisms = config["lockmechanisms"] || [];
-  this.heaterCoolers = config["heatercoolers"] || [];
+  this.fanv2s = config["fanv2s"] || [];
+  this.co2sensors = config["co2sensors"] || [];
+  this.remoAircons = config["remoaircons"] || [];
 
   this.server = new Server(Service, Characteristic, this, config);
 };
@@ -101,9 +105,19 @@ HttpWebHooksPlatform.prototype.accessories = function(callback) {
     accessories.push(lockMechanismAccessory);
   }
 
-  for (var i = 0; i < this.heaterCoolers.length; i++) {
-    var heaterCoolerAccessory = new HttpWebHookHeaterCoolerAccessory(Service, Characteristic, this, this.heaterCoolers[i]);
-    accessories.push(heaterCoolerAccessory);
+  for (var i = 0; i < this.fanv2s.length; i++) {
+    var fanv2Accessory = new HttpWebHookFanv2Accessory(Service, Characteristic, this, this.fanv2s[i]);
+    accessories.push(fanv2Accessory);
+  }
+
+  for (var i = 0; i < this.co2sensors.length; i++) {
+    var co2sensorAccessory = new HttpWebHookCarbonDioxideSensorAccessory(Service, Characteristic, this, this.co2sensors[i]);
+    accessories.push(co2sensorAccessory);
+  }
+  
+  for (var i = 0; i < this.remoAircons.length; i++) {
+    var remoAirconAccessory = new HttpWebHookRemoAirconAccessory(Service, Characteristic, this, this.remoAircons[i]);
+    accessories.push(remoAirconAccessory);
   }
 
   this.server.setAccessories(accessories);
